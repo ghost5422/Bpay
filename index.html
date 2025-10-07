@@ -1,168 +1,106 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berkay Sport HD1 - Canlı Maç Yayını</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
-        .live-indicator { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-        .video-container { background: linear-gradient(45deg, #1e40af, #3b82f6); border-radius: 12px; padding: 2px; }
-        .video-inner {
-            background: #000;
-            border-radius: 10px;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .play-button {
-            width: 80px; height: 80px;
-            background: rgba(59,130,246,0.9);
-            border-radius: 50%;
-            display:flex;align-items:center;justify-content:center;
-            cursor:pointer; transition: all 0.3s ease;
-            z-index: 20;
-        }
-        .play-button:hover { background: rgba(59,130,246,1); transform: scale(1.1); }
-
-        .match-card { background: linear-gradient(135deg,#1e293b 0%,#334155 100%); border:1px solid #475569; transition: all .3s ease; }
-        .match-card:hover { border-color:#3b82f6; transform: translateY(-2px); }
-
-        .chat-message { animation: slideIn .3s ease-out; }
-        @keyframes slideIn { from {opacity:0; transform:translateY(10px)} to {opacity:1; transform:translateY(0)} }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haftalık Çalışma Planı</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6fa; color: #222; }
+  header { background: #1e40af; color: white; text-align: center; padding: 15px; }
+  h1 { margin: 0; font-size: 20px; }
+  .week { display: flex; flex-direction: column; gap: 12px; padding: 10px; max-width: 800px; margin: 0 auto; }
+  .day { background: white; border-radius: 10px; padding: 14px; box-shadow: 0 3px 8px rgba(0,0,0,0.05); }
+  .day-name { font-weight: bold; font-size: 16px; color: #1e3a8a; }
+  .lesson { margin-top: 4px; font-size: 15px; }
+  .tasks { margin-top: 8px; }
+  .task { display: flex; align-items: center; margin: 4px 0; }
+  .task input { margin-right: 8px; transform: scale(1.2); }
+  textarea { width: 100%; border-radius: 6px; border: 1px solid #ddd; padding: 8px; margin-top: 6px; font-size: 14px; resize: vertical; }
+  .motivation { font-size: 13px; color: #555; margin-top: 8px; font-style: italic; }
+  footer { text-align: center; font-size: 12px; padding: 10px; color: #666; }
+</style>
 </head>
-<body class="gradient-bg min-h-screen text-white">
-    <!-- Header -->
-    <header class="bg-slate-900/80 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-white">Berkay Sport HD1</h1>
-                        <p class="text-sm text-blue-400">Canlı Maç Yayını</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                    <div class="live-indicator w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span class="text-sm font-medium text-red-400">CANLI</span>
-                </div>
-            </div>
-        </div>
-    </header>
+<body>
+<header>
+  <h1>📚 Berkay'ın Haftalık 3 Saatlik Çalışma Planı</h1>
+  <p>Her gün 3 saat — PDF → Defter → Word → Test</p>
+</header>
 
-    <div class="container mx-auto px-4 py-6">
-        <div class="grid lg:grid-cols-4 gap-6">
-            <!-- Ana Video Alanı -->
-            <div class="lg:col-span-3">
-                <div class="video-container mb-6">
-                    <div class="video-inner" id="videoPlayer">
-                        <!-- Başlangıç: play butonu, tıklayınca iframe yüklenecek -->
-                        <div class="play-button" onclick="startStream()" title="Yayın Başlat">
-                            <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M8 5v10l8-5-8-5z"/>
-                            </svg>
-                        </div>
-                        <div class="absolute top-4 left-4 bg-black/70 px-3 py-1 rounded-full text-sm" style="z-index:15;">
-                            <span class="text-red-400">●</span> HD1 Kalite
-                        </div>
-                    </div>
-                </div>
+<div class="week" id="week"></div>
 
-                <!-- Yayın Kalitesi (takım bilgisi kaldırıldı) -->
-                <div class="match-card rounded-xl p-4">
-                    
-    <!-- Footer -->
-    <footer class="bg-slate-900/80 border-t border-slate-700 mt-12">
-        <div class="container mx-auto px-4 py-6">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">© 2025 Berkay Sport HD1 - Tüm hakları saklıdır</p>
-                <p class="text-gray-500 text-xs mt-1">En kaliteli canlı maç yayınları</p>
-            </div>
-        </div>
-    </footer>
+<footer>💪 Her gün biraz ilerle, Aralık’ta farkı sen yarat!</footer>
 
-    <script>
-        const streamUrl = "https://grtv57.live/channel?id=yayins";
-        let isStreamActive = false;
-        let currentQuality = 'HD';
+<script>
+const gunler = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+const dersler = [
+  "İktisada Giriş",
+  "İletişim Bilgisi",
+  "İkna Edici İletişim",
+  "Genel İşletme",
+  "Pazarlama Yönetimi",
+  "Atatürk İlkeleri ve İnkılap Tarihi I",
+  "Türk Dili I"
+];
+const motivasyon = [
+  "Vazgeçme, başarı sabırla gelir.",
+  "Bugün az, yarın çok fark eder.",
+  "Düzenli tekrar, kalıcı bilgi demektir.",
+  "Zorlanıyorsan, doğru yoldasın.",
+  "Bir saatlik odak, üç saatlik kazançtır.",
+  "İstikrarlı olan kazanır.",
+  "Bugün çalışan, yarın rahat eder."
+];
 
-        function startStream() {
-            const videoPlayer = document.getElementById('videoPlayer');
-            if (isStreamActive) return;
+const weekDiv = document.getElementById("week");
 
-            // İlk kısa yükleme animasyonu
-            videoPlayer.innerHTML = `
-                <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative">
-                    <div class="text-center">
-                        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p class="text-lg font-semibold">Yayın Başlatılıyor...</p>
-                        <p class="text-sm text-gray-400 mt-2">${currentQuality} Kalitesinde</p>
-                    </div>
-                </div>
-            `;
+// LocalStorage kontrolü
+let savedData = JSON.parse(localStorage.getItem("dersPlan")) || {};
 
-            setTimeout(() => {
-                // Gerçek iframe'i yükle
-                videoPlayer.innerHTML = `
-                    <iframe id="stream" src="${streamUrl}" class="w-full h-full rounded-lg" allowfullscreen frameborder="0" style="position:relative; z-index:0;"></iframe>
-                    <div class="absolute top-4 left-4 bg-black/70 px-3 py-1 rounded-full text-sm" style="z-index:15;">
-                        <span class="text-red-400">●</span> ${currentQuality} Kalite
-                    </div>
-                    <div class="absolute top-4 right-4 bg-black/70 px-3 py-1 rounded-full text-sm" style="z-index:15;">
-                        <span class="text-green-400">●</span> CANLI
-                    </div>
-                `;
-                isStreamActive = true;
-            }, 1200);
-        }
+for (let i = 0; i < gunler.length; i++) {
+  const gun = gunler[i];
+  const ders = dersler[i % dersler.length];
+  const mot = motivasyon[i % motivasyon.length];
 
-        function changeQuality(quality) {
-            currentQuality = quality;
-            // Buton stilini güncelle
-            document.getElementById('q-hd').className = quality === 'HD' ? 'bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors' : 'bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors';
-            document.getElementById('q-sd').className = quality === 'SD' ? 'bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors' : 'bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors';
-            document.getElementById('q-mobile').className = quality === 'Mobile' ? 'bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors' : 'bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors';
+  const card = document.createElement("div");
+  card.className = "day";
+  card.innerHTML = `
+    <div class="day-name">${gun}</div>
+    <div class="lesson">📖 Ders: <b>${ders}</b></div>
+    <div class="tasks">
+      <div class="task"><input type="checkbox" data-id="pdf"> PDF'ten konuyu oku (1. saat)</div>
+      <div class="task"><input type="checkbox" data-id="defter"> Deftere önemli kavramları yaz (2. saat)</div>
+      <div class="task"><input type="checkbox" data-id="word"> Word’e 1 sayfa özet yaz (2. saat)</div>
+      <div class="task"><input type="checkbox" data-id="test"> 25-30 test çöz, yanlışları not et (3. saat)</div>
+    </div>
+    <textarea rows="3" placeholder="Bugünle ilgili notlarını yaz..." data-id="notes"></textarea>
+    <div class="motivation">💬 ${mot}</div>
+  `;
+  weekDiv.appendChild(card);
 
-            // Eğer iframe zaten açıksa, yeniden yükle (link aynıysa sadece reload olacak)
-            const iframe = document.getElementById('stream');
-            if (iframe) {
-                iframe.src = iframe.src; // basit reload (geri planda kalite parametresi yoksa değişiklik görünmez)
-            }
-        }
+  // ID oluştur (gun-index) -> LocalStorage anahtarı
+  const dayKey = `gun${i}`;
+  if (!savedData[dayKey]) savedData[dayKey] = {};
 
-        // Yardımcı fonksiyonlar (isteğe bağlı)
-        function reloadStream() {
-            const iframe = document.getElementById('stream');
-            if (iframe) iframe.src = iframe.src;
-            else startStream();
-        }
+  const checkboxes = card.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    const id = cb.getAttribute("data-id");
+    // LocalStorage'tan değer uygula
+    cb.checked = savedData[dayKey][id] || false;
+    // Değişiklik olunca kaydet
+    cb.addEventListener("change", () => {
+      savedData[dayKey][id] = cb.checked;
+      localStorage.setItem("dersPlan", JSON.stringify(savedData));
+    });
+  });
 
-        function toggleFullscreen() {
-            const el = document.getElementById('stream') || document.getElementById('videoPlayer');
-            if (!el) return;
-            if (el.requestFullscreen) el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-            else if (el.msRequestFullscreen) el.msRequestFullscreen();
-        }
-    </script>
-
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977f8e15602450ed',t:'MTc1NjY3NTA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+  const textarea = card.querySelector("textarea");
+  // LocalStorage'tan değer uygula
+  textarea.value = savedData[dayKey]["notes"] || "";
+  textarea.addEventListener("input", () => {
+    savedData[dayKey]["notes"] = textarea.value;
+    localStorage.setItem("dersPlan", JSON.stringify(savedData));
+  });
+}
+</script>
 </body>
 </html>
