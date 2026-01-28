@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-/* TASARIM AYNEN KORUNDU */
+/* TASARIM KODLARI (AYNEN KORUNDU) */
 :root { --bg-dark: #090909; --bg-card: #141414; --gold: #D4AF37; --text: #fff; --border: #333; }
 * { box-sizing: border-box; }
 body { background: var(--bg-dark); color: var(--text); font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -104,7 +104,7 @@ const db = firebase.database();
 
 const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 const totalAmount = localStorage.getItem("odemeTutar") || "0";
-let createdWaLink = ""; 
+let createdWaLink = ""; // Global değişken
 
 function formatPrice(p) { return Number(p).toLocaleString("tr-TR", {minimumFractionDigits: 2}) + "₺"; }
 
@@ -117,6 +117,8 @@ function showModal(title, msg, isSuccess = false) {
     mTitle.innerText = title;
     mMsg.innerText = msg;
     if(isSuccess) {
+        // BAŞARILI DURUM: Linki butona veriyoruz.
+        // DİKKAT: window.location.href yerine direkt butona basmasını bekliyoruz.
         mActions.innerHTML = `
             <button class="modal-btn" onclick="window.location.href='${createdWaLink}'">WHATSAPP'A GİT <i class="fab fa-whatsapp"></i></button>
             <button class="modal-btn secondary" onclick="window.location.href='siparislerim.html'">SİPARİŞLERİM</button>
@@ -129,17 +131,14 @@ function showModal(title, msg, isSuccess = false) {
 }
 function closeModal() { modal.classList.remove("active"); setTimeout(() => modal.style.display = "none", 300); }
 
-// SİPARİŞ ÖZETİ (VARYANTLI)
 const orderItemsDiv = document.getElementById("orderItems");
 if(cart.length === 0) { window.location.href = "index.html"; } else {
     cart.forEach(item => {
         const codeDisplay = item.code ? `<span style="color:#bf953f; font-size:10px; display:block;">[${item.code}]</span>` : '';
-        
         let variantTextHtml = "";
         if(item.variant && item.variant !== "Standart" && item.variant !== "null") {
             variantTextHtml = `<span class="order-item-variant">Seçenek: ${item.variant}</span>`;
         }
-
         orderItemsDiv.innerHTML += `
         <div class="order-item">
             <div style="display:flex; align-items:center;">
@@ -192,29 +191,34 @@ function finishOrder() {
         myOrders.push(orderData);
         localStorage.setItem("my_orders", JSON.stringify(myOrders));
 
-        // --- WHATSAPP MESAJI (Varyant Dahil) ---
-        let msg = `*YENİ SİPARİŞ! (#${orderId})*%0A👤 *Müşteri:* ${name}%0A📞 *Tel:* ${phone}%0A📍 *Adres:* ${address}%0A%0A*SİPARİŞ DETAYI:*%0A`;
+        // --- WHATSAPP MESAJI (encodeURIComponent İLE DÜZELTİLDİ) ---
+        let msg = `*YENİ SİPARİŞ! (#${orderId})*\n`;
+        msg += `👤 *Müşteri:* ${name}\n`;
+        msg += `📞 *Tel:* ${phone}\n`;
+        msg += `📍 *Adres:* ${address}\n\n`;
+        msg += `*SİPARİŞ DETAYI:*\n`;
         
         cart.forEach(item => { 
             const pCode = item.code ? `[${item.code}] ` : ''; 
-            
-            // Varyant mesajın içine ekleniyor (Örn: [Metal Kordon])
             let variantSuffix = "";
             if(item.variant && item.variant !== "Standart" && item.variant !== "null") {
-                variantSuffix = ` [${item.variant}]`;
+                variantSuffix = ` | ${item.variant}`;
             }
-
-            msg += `▫️ ${pCode}${item.name}${variantSuffix} (x${item.qty})%0A`; 
+            msg += `▫️ ${pCode}${item.name}${variantSuffix} (x${item.qty})\n`; 
         });
         
-        msg += `%0A💰 *TOPLAM:* ${formatPrice(totalAmount)}`;
-        createdWaLink = `https://wa.me/905340188445?text=${msg}`; // TELEFON NUMARASI
+        msg += `\n💰 *TOPLAM:* ${formatPrice(totalAmount)}`;
+        
+        // ÖNEMLİ: URL'i encode ediyoruz ki tarayıcı bozmasın
+        createdWaLink = `https://wa.me/905340188445?text=${encodeURIComponent(msg)}`; 
 
         localStorage.removeItem("cart");
         localStorage.removeItem("odemeTutar");
 
         document.getElementById("loader").style.display = "none";
-        showModal("Sipariş Alındı!", "Siparişiniz oluşturuldu. WhatsApp üzerinden bildirim yapabilirsiniz.", true);
+        
+        // OTOMATİK YÖNLENDİRMEYİ KALDIRDIK. KULLANICI BUTONA BASACAK.
+        showModal("Sipariş Alındı!", "Siparişiniz oluşturuldu. Aşağıdaki butona basarak WhatsApp üzerinden bildirim yapınız.", true);
 
     }).catch(err => {
         document.getElementById("loader").style.display = "none";
