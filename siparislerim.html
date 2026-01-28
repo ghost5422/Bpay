@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sipariş Takibi | BERTA SAAT</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+:root { --bg-dark: #090909; --bg-card: #141414; --gold: #D4AF37; --text: #fff; --border: #333; --danger: #e74c3c; }
+* { box-sizing: border-box; outline: none; }
+body { background: var(--bg-dark); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+.container { max-width: 600px; width: 100%; margin-top: 20px; }
+h2 { font-family: 'Cinzel', serif; color: var(--gold); text-align: center; margin-bottom: 30px; font-size: 1.8rem; letter-spacing: 1px; }
+
+/* GERİ BUTONU */
+.back-btn { display: flex; align-items: center; gap: 10px; color: #888; text-decoration: none; font-weight: 600; margin-bottom: 20px; transition:0.3s; align-self: flex-start; }
+.back-btn:hover { color: var(--gold); transform: translateX(-5px); }
+
+/* SORGULAMA KUTUSU */
+.search-box { background: var(--bg-card); border: 1px solid var(--gold); padding: 30px; border-radius: 12px; box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); text-align: center; margin-bottom: 30px; }
+.search-title { font-size: 1.1rem; margin-bottom: 15px; color: #ccc; }
+.input-group { display: flex; gap: 10px; }
+.search-input { flex: 1; padding: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; text-align: center; letter-spacing: 2px; transition: 0.3s; }
+.search-input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+.search-btn { background: var(--gold); color: #000; border: none; padding: 0 25px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+.search-btn:hover { background: #fff; }
+
+/* SONUÇ KARTI */
+.order-card { background: var(--bg-card); border: 1px solid #333; border-radius: 12px; padding: 25px; margin-bottom: 20px; animation: fadeIn 0.5s ease; position: relative; overflow: hidden; }
+.order-card::before { content:''; position: absolute; top:0; left:0; width:4px; height:100%; background: var(--gold); }
+
+.order-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 15px; }
+.order-id-label { font-size: 0.8rem; color: #888; margin-bottom: 5px; }
+.order-id-val { font-size: 1.4rem; color: var(--gold); font-family: 'Cinzel', serif; font-weight: bold; }
+.order-date { font-size: 0.8rem; color: #666; margin-top: 5px; }
+
+.status-badge { padding: 8px 15px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.status-pending { background: rgba(243, 156, 18, 0.15); color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.3); }
+.status-approved { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+.status-shipped { background: rgba(52, 152, 219, 0.15); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.3); }
+.status-cancelled { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
+
+.item-list { margin-bottom: 20px; }
+.item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+.item-name { color: #eee; font-size: 0.95rem; }
+.item-meta { color: #888; font-size: 0.85rem; margin-top: 3px; }
+.item-price { color: var(--gold); font-weight: bold; }
+
+.total-section { text-align: right; font-size: 1.3rem; color: #fff; font-family: 'Cinzel', serif; padding-top: 10px; }
+
+/* İPTAL BUTONU */
+.cancel-section { margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; text-align: right; }
+.btn-cancel-order { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: 0.3s; font-size: 0.9rem; }
+.btn-cancel-order:hover { background: var(--danger); color: #fff; }
+
+.not-found { text-align: center; color: #e74c3c; padding: 20px; display: none; }
+.loader { text-align: center; color: var(--gold); padding: 20px; display: none; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media(max-width: 500px){ .input-group { flex-direction: column; } .search-btn { padding: 15px; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Alışverişe Dön</a>
+    <h2>SİPARİŞ SORGULA</h2>
+
+    <div class="search-box">
+        <div class="search-title">Sipariş numaranızı giriniz</div>
+        <div class="input-group">
+            <input type="number" id="orderInput" class="search-input" placeholder="Örn: 582910">
+            <button class="search-btn" onclick="queryOrder()">SORGULA</button>
+        </div>
+        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Aranıyor...</div>
+        <div id="notFound" class="not-found"><i class="fas fa-exclamation-circle"></i> Sipariş bulunamadı. Numarayı kontrol ediniz.</div>
+    </div>
+
+    <div id="resultArea"></div>
+</div>
+
+<script>
+const firebaseConfig = { apiKey: "AIzaSyDoT5pdRXSwDKahudI7uBR14ojcASK3r8A", databaseURL: "https://eticaret-af401-default-rtdb.firebaseio.com" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function formatPrice(p) { return Number(p).toLocaleString("tr-TR", {minimumFractionDigits: 2}) + "₺"; }
+
+// URL'den ID gelirse otomatik sorgula
+const urlParams = new URLSearchParams(window.location.search);
+const urlId = urlParams.get('id');
+if(urlId) {
+    document.getElementById("orderInput").value = urlId;
+    queryOrder();
+}
+
+function queryOrder() {
+    const inputVal = document.getElementById("orderInput").value.trim();
+    const resultArea = document.getElementById("resultArea");
+    const loader = document.getElementById("loader");
+    const notFound = document.getElementById("notFound");
+
+    if(!inputVal) { alert("Lütfen bir sipariş numarası giriniz."); return; }
+
+    resultArea.innerHTML = "";
+    notFound.style.display = "none";
+    loader.style.display = "block";
+
+    db.ref("orders").orderByChild("orderId").equalTo(Number(inputVal)).once("value").then(snapshot => {
+        loader.style.display = "none";
+
+        if(snapshot.exists()) {
+            snapshot.forEach(child => {
+                // Burada KEY'i de gönderiyoruz ki iptal ederken kullanabilelim
+                renderOrder(child.val(), child.key);
+            });
+        } else {
+            notFound.style.display = "block";
+        }
+    }).catch(err => {
+        loader.style.display = "none";
+        alert("Bağlantı hatası: " + err.message);
+    });
+}
+
+function renderOrder(order, firebaseKey) {
+    const resultArea = document.getElementById("resultArea");
+    
+    let statusText = "İşlem Bekliyor";
+    let statusClass = "status-pending";
+    let showCancelBtn = false; // İptal butonu gösterilsin mi?
+
+    if(order.status === 'approved') { 
+        statusText = "Sipariş Onaylandı"; 
+        statusClass = "status-approved"; 
+    }
+    else if(order.status === 'shipped') { 
+        statusText = "Kargoya Verildi"; 
+        statusClass = "status-shipped"; 
+    }
+    else if(order.status === 'cancelled') { 
+        statusText = "İptal Edildi"; 
+        statusClass = "status-cancelled"; 
+    }
+    else {
+        // Eğer statü 'pending' ise iptal butonu aktif
+        showCancelBtn = true;
+    }
+
+    let itemsHtml = "";
+    if(order.items) {
+        order.items.forEach(item => {
+            const pCode = item.code ? `<span style="font-size:0.8rem; color:#bf953f">[${item.code}]</span> ` : '';
+            itemsHtml += `
+            <div class="item-row">
+                <div>
+                    <div class="item-name">${pCode}${item.name}</div>
+                    <div class="item-meta">${item.qty} Adet</div>
+                </div>
+                <div class="item-price">${formatPrice(item.price * item.qty)}</div>
+            </div>`;
+        });
+    }
+
+    // İptal Butonu HTML'i
+    let cancelBtnHtml = "";
+    if(showCancelBtn) {
+        cancelBtnHtml = `
+        <div class="cancel-section">
+            <button class="btn-cancel-order" onclick="cancelMyOrder('${firebaseKey}')">
+                <i class="fas fa-times-circle"></i> SİPARİŞİMİ İPTAL ET
+            </button>
+            <div style="font-size:0.75rem; color:#666; margin-top:5px;">Siparişiniz onaylanmadan önce iptal edebilirsiniz.</div>
+        </div>`;
+    }
+
+    const html = `
+    <div class="order-card">
+        <div class="order-header">
+            <div>
+                <div class="order-id-label">SİPARİŞ NO</div>
+                <div class="order-id-val">#${order.orderId}</div>
+                <div class="order-date"><i class="far fa-calendar-alt"></i> ${order.orderDate}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="status-badge ${statusClass}">${statusText}</div>
+                <div style="font-size:0.8rem; color:#666; margin-top:5px;">${order.customerName}</div>
+            </div>
+        </div>
+
+        <div class="item-list">
+            ${itemsHtml}
+        </div>
+
+        <div class="total-section">
+            <span style="font-size:0.9rem; color:#888; margin-right:10px;">TOPLAM:</span>
+            ${formatPrice(order.totalAmount)}
+        </div>
+
+        ${cancelBtnHtml}
+    </div>`;
+
+    resultArea.innerHTML = html;
+}
+
+// SİPARİŞ İPTAL FONKSİYONU
+function cancelMyOrder(key) {
+    if(confirm("Siparişinizi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
+        // Loader gösterilebilir ama hızlıca işlem yapıyoruz
+        db.ref("orders/" + key).update({ status: 'cancelled' }).then(() => {
+            alert("Siparişiniz başarıyla iptal edildi.");
+            // Ekranı yenilemek yerine sorguyu tekrar çalıştırıyoruz
+            queryOrder();
+        }).catch(err => {
+            alert("Hata oluştu: " + err.message);
+        });
+    }
+}
+</script>
+</body>
+</html>
